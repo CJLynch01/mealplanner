@@ -2,6 +2,7 @@ import express from "express";
 import Meal from "../models/meal.js";
 import Plan from "../models/plan.js";
 import { searchProduct } from "../services/krogerService.js";
+import { searchProduct, getAccessToken, getLocationId } from "../services/krogerService.js";
 
 const router = express.Router();
 
