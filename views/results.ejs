@@ -1,0 +1,8 @@
+<%- include("layout") %>
+<h2>Ingredients for <%= meal %></h2>
+<ul>
+  <% products.forEach(p => { %>
+    <li><strong><%= p.name %></strong>: <%= p.description %> - $<%= p.price %></li>
+  <% }) %>
+</ul>
+<a href="/">← Back</a>

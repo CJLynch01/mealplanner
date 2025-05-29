@@ -1,0 +1,10 @@
+<%- include("layout") %>
+<h1>Choose a Meal</h1>
+<form method="POST" action="/results">
+  <select name="mealId">
+    <% meals.forEach(meal => { %>
+      <option value="<%= meal._id %>"><%= meal.name %></option>
+    <% }) %>
+  </select>
+  <button type="submit">Get Ingredients</button>
+</form>
