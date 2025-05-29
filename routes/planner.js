@@ -11,19 +11,26 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/results", async (req, res) => {
+  const zip = req.body.zip;
   const meal = await Meal.findById(req.body.mealId);
-  const ingredients = await Promise.all(meal.ingredients.map(async (item) => {
-    const result = await searchProduct(item);
-    return {
-      name: item,
-      description: result?.description || "Not found",
-      price: result?.items?.[0]?.price?.regular || 0
-    };
-  }));
+  const ingredients = meal.ingredients;
 
-  await Plan.create({ mealName: meal.name, ingredients });
+  const locationId = await getLocationId(zip);
 
-  res.render("results", { meal: meal.name, products: ingredients });
+  const products = await Promise.all(
+    ingredients.map(async (item) => {
+      const product = await searchProduct(item, locationId);
+      return {
+        name: item,
+        description: product?.description || "Not found",
+        price: product?.items?.[0]?.price?.promo || product?.items?.[0]?.price?.regular || 0
+      };
+    })
+  );
+
+  await Plan.create({ mealName: meal.name, ingredients: products });
+  res.render("results", { meal: meal.name, products });
 });
+
 
 export default router;

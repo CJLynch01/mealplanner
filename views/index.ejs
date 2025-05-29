@@ -1,9 +1,15 @@
 <h1>Choose a Meal</h1>
+
 <form method="POST" action="/results">
-  <select name="mealId">
+  <label for="meal">Meal:</label>
+  <select name="mealId" required>
     <% meals.forEach(meal => { %>
       <option value="<%= meal._id %>"><%= meal.name %></option>
     <% }) %>
   </select>
+
+  <label for="zip">ZIP Code:</label>
+  <input type="text" name="zip" required pattern="\d{5}" placeholder="e.g. 84040">
+
   <button type="submit">Get Ingredients</button>
 </form>
