@@ -23,8 +23,9 @@ router.post("/results", async (req, res) => {
       return {
         name: item,
         description: product?.description || "Not found",
-        price: product?.items?.[0]?.price?.promo || product?.items?.[0]?.price?.regular || 0
-      };
+        price: product?.items?.[0]?.price?.promo || product?.items?.[0]?.price?.regular || 0,
+        image: image
+    };
     })
   );
 
