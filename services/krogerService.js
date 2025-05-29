@@ -7,23 +7,37 @@ let token = null;
 export async function getAccessToken() {
   const auth = Buffer.from(`${process.env.KROGER_CLIENT_ID}:${process.env.KROGER_CLIENT_SECRET}`).toString("base64");
 
-  const res = await fetch("https://api.kroger.com/v1/connect/oauth2/token", {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: "grant_type=client_credentials&scope=product.compact"
-  });
+  try {
+    const res = await fetch("https://api.kroger.com/v1/connect/oauth2/token", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: "grant_type=client_credentials&scope=product.compact"
+    });
 
-  const data = await res.json();
-  token = data.access_token;
+    const data = await res.json();
+    console.log("Raw token response:", data);
+
+    token = data.access_token;
+
+    if (!token) {
+      console.error("❌ Token not received. Check client ID/secret or rate limits.");
+    } else {
+      console.log("✅ Access Token:", token);
+    }
+
+    return token;
+  } catch (err) {
+    console.error("Error fetching token:", err.message);
+  }
 }
 
 export async function searchProduct(term) {
   if (!token) await getAccessToken();
 
-  const res = await fetch(`https://api.kroger.com/v1/products?filter.term=${encodeURIComponent(term)}&filter.limit=1&filter.locationId=01500438`, {
+    const res = await fetch(`https://api.kroger.com/v1/products?filter.term=${encodeURIComponent(term)}&filter.limit=1`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/json"
