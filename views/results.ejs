@@ -1,13 +1,17 @@
-<h2>Ingredients for <%= meal %></h2>
+<h2>Products for <%= meal %></h2>
 <ul>
   <% products.forEach(p => { %>
     <li>
       <strong><%= p.name %></strong><br>
+      Brand: <%= p.brand %><br>
       <%= p.description %> - $<%= p.price.toFixed(2) %><br>
       <% if (p.image) { %>
-        <img src="<%= p.image %>" alt="<%= p.name %>" style="height: 100px;">
+        <img src="<%= p.image %>" alt="<%= p.name %>" style="height: 100px;"><br>
+      <% } else { %>
+        <em>No image available</em>
       <% } %>
     </li>
   <% }) %>
 </ul>
+
 <a href="/">← Back</a>
