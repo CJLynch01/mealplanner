@@ -43,7 +43,7 @@ export async function getLocationId(zip = "84040") {
 export async function searchProduct(term, locationId) {
   if (!token) await getAccessToken();
 
-  const res = await fetch(`https://api.kroger.com/v1/products?filter.term=${encodeURIComponent(term)}&filter.limit=1&filter.locationId=${locationId}`, {
+  const res = await fetch(`https://api.kroger.com/v1/products?filter.term=${encodeURIComponent(term)}&filter.limit=8&filter.locationId=${locationId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/json"
@@ -51,5 +51,5 @@ export async function searchProduct(term, locationId) {
   });
 
   const data = await res.json();
-  return data.data?.[0] || null;
+  return data.data || [];
 }
