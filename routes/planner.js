@@ -1,22 +1,63 @@
 import express from "express";
-import Meal from "../models/meal.js";
-import Plan from "../models/plan.js";
+import dayjs from "dayjs";
+import Meal from "../models/Meal.js";
+import Plan from "../models/Plan.js";
+import Assignment from "../models/assignment.js";
 import { searchProduct, getLocationId } from "../services/krogerService.js";
 
 const router = express.Router();
 
+// WEEK VIEW: Show meals assigned to each day of the current week
 router.get("/", async (req, res) => {
-  const meals = await Meal.find({});
-  res.render("index", { meals });
+  const startOfWeek = dayjs().startOf("week"); // Sunday
+  const assignments = await Assignment.find({
+    date: {
+      $gte: startOfWeek.toDate(),
+      $lte: startOfWeek.add(6, "day").toDate()
+    }
+  });
+
+  const week = Array.from({ length: 7 }).map((_, i) => {
+    const date = startOfWeek.add(i, "day");
+    const assignment = assignments.find(a =>
+      dayjs(a.date).isSame(date, "day")
+    );
+    return {
+      date: date.format("YYYY-MM-DD"),
+      meal: assignment?.mealName || null
+    };
+  });
+
+  res.render("index", { week });
 });
 
+// ASSIGN PAGE: Form to assign a meal to a date
+router.get("/assign", async (req, res) => {
+  const meals = await Meal.find({});
+  res.render("assign", { meals });
+});
+
+// SAVE ASSIGNMENT
+router.post("/assign", async (req, res) => {
+  const { date, mealId } = req.body;
+  const meal = await Meal.findById(mealId);
+  if (!meal) return res.status(404).send("Meal not found");
+
+  await Assignment.findOneAndUpdate(
+    { date: new Date(date) },
+    { mealName: meal.name },
+    { upsert: true }
+  );
+
+  res.redirect("/");
+});
+
+// SEARCH PRODUCTS FOR MEAL
 router.post("/results", async (req, res) => {
   const { mealId, zip } = req.body;
 
   const meal = await Meal.findById(mealId);
-  if (!meal) {
-    return res.status(404).send("Meal not found.");
-  }
+  if (!meal) return res.status(404).send("Meal not found.");
 
   const locationId = await getLocationId(zip);
 
@@ -26,8 +67,13 @@ router.post("/results", async (req, res) => {
       console.log(`Found ${products.length} results for "${item}"`);
 
       return products.map((product) => {
-        const price = product?.items?.[0]?.price?.promo || product?.items?.[0]?.price?.regular || 0;
-        const image = product?.images?.[0]?.sizes?.find(s => s.size === "medium")?.url || null;
+        const price =
+          product?.items?.[0]?.price?.promo ||
+          product?.items?.[0]?.price?.regular ||
+          0;
+        const image =
+          product?.images?.[0]?.sizes?.find(s => s.size === "medium")?.url ||
+          null;
 
         return {
           name: item,

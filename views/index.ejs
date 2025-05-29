@@ -1,12 +1,11 @@
-<h1>Choose a Meal</h1>
+<h1>Weekly Meal Plan</h1>
+<a href="/assign">Assign a Meal</a>
 
-<form method="POST" action="/results">
-  <select name="mealId">
-    <% meals.forEach(meal => { %>
-      <option value="<%= meal._id %>"><%= meal.name %></option>
-    <% }); %>
-  </select>
-
-  <input type="text" name="zip" required placeholder="ZIP Code (e.g., 84040)" pattern="\d{5}">
-  <button type="submit">Get Ingredients</button>
-</form>
+<ul>
+  <% week.forEach(day => { %>
+    <li>
+      <strong><%= day.date %></strong>: 
+      <%= day.meal ? day.meal : "No meal assigned" %>
+    </li>
+  <% }) %>
+</ul>

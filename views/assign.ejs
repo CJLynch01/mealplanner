@@ -1,0 +1,14 @@
+<h1>Assign a Meal to a Day</h1>
+<form method="POST" action="/assign">
+  <label for="date">Date:</label>
+  <input type="date" name="date" required>
+
+  <label for="mealId">Meal:</label>
+  <select name="mealId">
+    <% meals.forEach(meal => { %>
+      <option value="<%= meal._id %>"><%= meal.name %></option>
+    <% }) %>
+  </select>
+
+  <button type="submit">Assign Meal</button>
+</form>
