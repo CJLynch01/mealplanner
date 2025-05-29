@@ -15,17 +15,25 @@ router.post("/results", async (req, res) => {
   const meal = await Meal.findById(req.body.mealId);
   const ingredients = meal.ingredients;
 
+
   const locationId = await getLocationId(zip);
 
   const products = await Promise.all(
     ingredients.map(async (item) => {
       const product = await searchProduct(item, locationId);
-      return {
+
+        // Pull promo or regular price
+        const price = product?.items?.[0]?.price?.promo || product?.items?.[0]?.price?.regular || 0;
+
+        // Pull image (medium size preferred)
+        const image = product?.images?.[0]?.sizes?.find(s => s.size === "medium")?.url || null;
+
+        return {
         name: item,
         description: product?.description || "Not found",
-        price: product?.items?.[0]?.price?.promo || product?.items?.[0]?.price?.regular || 0,
-        image: image
-    };
+        price,
+        image
+        };
     })
   );
 
