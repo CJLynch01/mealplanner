@@ -10,6 +10,7 @@ const router = express.Router();
 // Root route: Weekly meal planner view
 router.get("/", async (req, res) => {
   const startOfWeek = dayjs().startOf("week");
+
   const assignments = await Assignment.find({
     date: {
       $gte: startOfWeek.toDate(),
@@ -17,14 +18,25 @@ router.get("/", async (req, res) => {
     }
   });
 
+  const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
+
   const week = Array.from({ length: 7 }).map((_, i) => {
     const date = startOfWeek.add(i, "day");
-    const assignment = assignments.find(a =>
-      dayjs(a.date).isSame(date, "day")
-    );
+    const formattedDate = date.format("YYYY-MM-DD");
+
+    const meals = mealTypes.map(type => {
+      const assignment = assignments.find(a =>
+        dayjs(a.date).isSame(date, "day") && a.type === type
+      );
+      return {
+        type,
+        meal: assignment?.mealName || ""
+      };
+    });
+
     return {
-      date: date.format("YYYY-MM-DD"),
-      meal: assignment?.mealName || null
+      date: formattedDate,
+      meals
     };
   });
 

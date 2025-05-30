@@ -16,6 +16,24 @@ body {
     line-height: 1.6;
 }
 
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.day-card {
+  background-color: #f0f4f8;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.day-card h3 {
+  margin-top: 0;
+}
+
 /* Centered and styled form */
 form {
     max-width: 600px;

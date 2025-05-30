@@ -1,13 +1,17 @@
 <h1>Weekly Meal Plan</h1>
-<a href="/assign">Assign a Meal</a>
+<a href="/assign">Assign Meals</a> | <a href="/shopping-list">Shopping List</a>
 
-<a href="/shopping-list">View Shopping List 🛒</a>
-
-<ul>
+<div class="week-grid">
   <% week.forEach(day => { %>
-    <li>
-      <strong><%= day.date %></strong>: 
-      <%= day.meal ? day.meal : "No meal assigned" %>
-    </li>
+    <div class="day-card">
+      <h3><%= new Date(day.date).toDateString() %></h3>
+      <ul>
+        <% day.meals.forEach(m => { %>
+          <li><strong><%= m.type.charAt(0).toUpperCase() + m.type.slice(1) %></strong>: 
+            <%= m.meal || "—" %>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
   <% }) %>
-</ul>
+</div>
