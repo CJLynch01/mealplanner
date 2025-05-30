@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import path from "path";
 import expressLayouts from "express-ejs-layouts";
 import plannerRoutes from "./routes/planner.js";
+import storageRoutes from "./routes/storage.js";
 
 dotenv.config();
 
@@ -17,6 +18,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.set("layout", "layout");
 app.use(expressLayouts);
+
+app.use("/storage", storageRoutes);
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
