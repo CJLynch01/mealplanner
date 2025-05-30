@@ -5,59 +5,57 @@ dotenv.config();
 const apiKey = process.env.USDA_API_KEY;
 
 /**
- * Search USDA Foods Database for a matching item
- * @param {string} query - Name of the food item
+ * Search for a food item in the USDA database by name.
+ * @param {string} query - Food name
+ * @returns {object|null} First matched food item or null
  */
 async function searchUSDA(query) {
   const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&api_key=${apiKey}`;
   const res = await fetch(url);
   const data = await res.json();
-  return data.foods?.[0]; // Return first match
+  return data.foods?.[0] || null;
 }
 
 /**
- * Get detailed nutrition information using FDC ID
+ * Retrieve full nutrient info for a given USDA food item by fdcId.
  * @param {string} fdcId
+ * @returns {object} Nutrition info object
  */
 async function getNutritionFromUSDA(fdcId) {
-  try {
-    const url = `https://api.nal.usda.gov/fdc/v1/food/${fdcId}?api_key=${apiKey}`;
-    const res = await fetch(url);
-    const data = await res.json();
+  const url = `https://api.nal.usda.gov/fdc/v1/food/${fdcId}?api_key=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
 
-    const nutr = (name) =>
-      data.foodNutrients.find(n =>
-        typeof n.nutrientName === "string" &&
-        n.nutrientName.toLowerCase().includes(name.toLowerCase())
-      )?.value || 0;
+  // More robust nutrient matching using keyword arrays
+  const nutr = (keywords) => {
+    const match = data.foodNutrients.find(n =>
+      typeof n.nutrientName === "string" &&
+      keywords.some(k => n.nutrientName.toLowerCase().includes(k.toLowerCase()))
+    );
+    return match?.value || 0;
+  };
 
-    return {
-      name: data.description,
-      caloriesPerServing: nutr("Energy"),
-      proteinPerServing: nutr("Protein"),
-      fatPerServing: nutr("Total lipid"),
-      carbsPerServing: nutr("Carbohydrate"),
-      ironPerServing: nutr("Iron"),
-      vitaminCPerServing: nutr("Vitamin C"),
-      vitaminAPerServing: nutr("Vitamin A")
-    };
-  } catch (err) {
-    console.error("Error in getNutritionFromUSDA:", err.message);
-    return null;
-  }
+  return {
+    name: data.description,
+    caloriesPerServing: nutr(["Energy", "Calories"]),
+    proteinPerServing: nutr(["Protein"]),
+    fatPerServing: nutr(["Total lipid", "Fat"]),
+    carbsPerServing: nutr(["Carbohydrate"]),
+    ironPerServing: nutr(["Iron"]),
+    vitaminCPerServing: nutr(["Vitamin C"]),
+    vitaminAPerServing: nutr(["Vitamin A"])
+  };
 }
 
 /**
- * Fetch and return nutrition info by food name
+ * Unified fetch function that searches and retrieves full USDA nutrition data.
  * @param {string} name
+ * @returns {object|null} Nutrition info or null if not found
  */
 export async function fetchNutritionFromUSDA(name) {
   try {
     const food = await searchUSDA(name);
-    if (!food) {
-      console.warn(`⚠️ USDA search returned no match for: ${name}`);
-      return null;
-    }
+    if (!food) return null;
     return await getNutritionFromUSDA(food.fdcId);
   } catch (err) {
     console.error("USDA API error:", err.message);
@@ -66,9 +64,10 @@ export async function fetchNutritionFromUSDA(name) {
 }
 
 /**
- * Calculate total nutrient values and caloric coverage
- * @param {object} item - One food storage item
- * @param {number} familySize - Default: 5
+ * Calculate totals from item nutrition and servings.
+ * @param {object} item
+ * @param {number} familySize
+ * @returns {object} Totals
  */
 export function calculateTotals(item, familySize = 5) {
   const totalServings = item.quantity * item.servingsPerUnit;
