@@ -1,0 +1,11 @@
+<h1>Edit Food Storage Item</h1>
+<form method="POST" action="/storage/edit/<%= item._id %>">
+  <input name="name" value="<%= item.name %>" required />
+  <input name="quantity" type="number" value="<%= item.quantity %>" />
+  <input name="unit" value="<%= item.unit %>" />
+  <input name="servingsPerUnit" type="number" value="<%= item.servingsPerUnit %>" />
+  <input name="expires" type="date" value="<%= item.expires.toISOString().split('T')[0] %>" />
+  <input name="category" value="<%= item.category %>" />
+  <button type="submit">Save Changes</button>
+</form>
+<a href="/storage">← Back</a>
