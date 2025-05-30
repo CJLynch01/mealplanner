@@ -9,27 +9,33 @@ import ShoppingList from "../models/shoppingList.js";
 const router = express.Router();
 
 // WEEK VIEW: Show meals assigned to each day of the current week
-router.get("/", async (req, res) => {
-  const startOfWeek = dayjs().startOf("week"); // Sunday
-  const assignments = await Assignment.find({
-    date: {
-      $gte: startOfWeek.toDate(),
-      $lte: startOfWeek.add(6, "day").toDate()
-    }
-  });
+router.get("/assign", async (req, res) => {
+  const meals = await Meal.find({});
+  let selectedMeal = null;
+  let ingredientProducts = [];
 
-  const week = Array.from({ length: 7 }).map((_, i) => {
-    const date = startOfWeek.add(i, "day");
-    const assignment = assignments.find(a =>
-      dayjs(a.date).isSame(date, "day")
+  if (req.query.mealId) {
+    selectedMeal = await Meal.findById(req.query.mealId);
+    const locationId = await getLocationId("84040"); // or dynamic ZIP later
+
+    ingredientProducts = await Promise.all(
+      selectedMeal.ingredients.map(async (ingredient) => {
+        const products = await searchProduct(ingredient, locationId);
+        return {
+          ingredient,
+          products: products.slice(0, 3).map(product => ({
+            id: product.productId,
+            description: product.description,
+            brand: product.brand,
+            image: product?.images?.[0]?.sizes?.find(s => s.size === "medium")?.url || null,
+            price: product?.items?.[0]?.price?.promo || product?.items?.[0]?.price?.regular || 0
+          }))
+        };
+      })
     );
-    return {
-      date: date.format("YYYY-MM-DD"),
-      meal: assignment?.mealName || null
-    };
-  });
+  }
 
-  res.render("index", { week });
+  res.render("assign", { meals, selectedMeal, ingredientProducts });
 });
 
 // ASSIGN PAGE: Form to assign a meal to a date
@@ -40,8 +46,9 @@ router.get("/assign", async (req, res) => {
 });
 
 // SAVE ASSIGNMENT
+
 router.post("/assign", async (req, res) => {
-  const { date, mealId, selectedIngredients } = req.body;
+  const { date, mealId, selectedProducts } = req.body;
   const meal = await Meal.findById(mealId);
   if (!meal) return res.status(404).send("Meal not found");
 
@@ -51,16 +58,19 @@ router.post("/assign", async (req, res) => {
     { upsert: true }
   );
 
-  const ingredients = Array.isArray(selectedIngredients)
-    ? selectedIngredients
-    : [selectedIngredients];
+  const productArray = Array.isArray(selectedProducts) ? selectedProducts : [selectedProducts];
 
-  await ShoppingList.insertMany(
-    ingredients.map(item => ({
+  const shoppingItems = productArray.map(item => {
+    const [ingredient, description, price] = item.split(":::");
+    return {
       date: new Date(date),
-      ingredient: item
-    }))
-  );
+      ingredient,
+      description,
+      price: parseFloat(price)
+    };
+  });
+
+  await ShoppingList.insertMany(shoppingItems);
 
   res.redirect("/");
 });
