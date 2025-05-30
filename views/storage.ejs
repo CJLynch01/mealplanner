@@ -13,6 +13,12 @@
 <h2>Current Inventory</h2>
 <ul>
   <% storage.forEach(item => { %>
-    <li><strong><%= item.name %></strong>: <%= item.quantity %> <%= item.unit %> (Expires: <%= item.expires?.toDateString() || "N/A" %>)</li>
+    <li>
+      <strong><%= item.name %></strong>: 
+      <%= item.quantity %> <%= item.unit %>
+      <% if (item.expires) { %>
+        (Expires: <%= new Date(item.expires).toDateString() %>)
+      <% } %>
+    </li>
   <% }) %>
 </ul>

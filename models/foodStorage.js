@@ -5,7 +5,7 @@ const foodStorageSchema = new mongoose.Schema({
   quantity: Number,
   unit: String,
   expires: Date,
-  category: String
+  category: String,
 });
 
 export default mongoose.model("FoodStorage", foodStorageSchema);
