@@ -17,9 +17,14 @@
     <li>
       <strong><%= item.name %></strong>:
       <%= item.quantity %> <%= item.unit %> (Expires: <%= new Date(item.expires).toDateString() %>)<br>
-      🍽 Total Calories: <%= item.stats.totalCalories.toLocaleString() %> kcal  
-      | Protein: <%= item.stats.totalProtein %>g  
-      | Covers: <%= item.stats.daysOfSupport %> day(s) for 5 people
+
+      <% if (item.stats) { %>
+        🍽 Total Calories: <%= item.stats.totalCalories.toLocaleString() %> kcal  
+        | Protein: <%= item.stats.totalProtein %>g  
+        | Covers: <%= item.stats.daysOfSupport %> day(s) for 5 people
+      <% } else { %>
+        <em>Nutrition data incomplete.</em>
+      <% } %>
     </li>
   <% }) %>
 </ul>
