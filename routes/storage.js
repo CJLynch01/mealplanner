@@ -61,4 +61,22 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Show edit form
+router.get("/edit/:id", async (req, res) => {
+  const item = await FoodStorage.findById(req.params.id);
+  res.render("edit-storage", { item });
+});
+
+// Handle update
+router.post("/edit/:id", async (req, res) => {
+  await FoodStorage.findByIdAndUpdate(req.params.id, req.body);
+  res.redirect("/storage");
+});
+
+// Handle delete
+router.post("/delete/:id", async (req, res) => {
+  await FoodStorage.findByIdAndDelete(req.params.id);
+  res.redirect("/storage");
+});
+
 export default router;

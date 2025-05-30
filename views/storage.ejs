@@ -16,7 +16,8 @@
   <% storage.forEach(item => { %>
     <li>
       <strong><%= item.name %></strong>:
-      <%= item.quantity %> <%= item.unit %> (Expires: <%= new Date(item.expires).toDateString() %>)<br>
+      <%= item.quantity %> <%= item.unit %> 
+      (Expires: <%= new Date(item.expires).toDateString() %>)<br>
 
       <% if (item.stats) { %>
         🍽 Total Calories: <%= item.stats.totalCalories.toLocaleString() %> kcal  
@@ -25,6 +26,12 @@
       <% } else { %>
         <em>Nutrition data incomplete.</em>
       <% } %>
+
+      <!-- Edit and Delete Buttons -->
+      <form method="POST" action="/storage/delete/<%= item._id %>" style="display:inline;">
+        <button onclick="return confirm('Delete this item?')">🗑️</button>
+      </form>
+      <a href="/storage/edit/<%= item._id %>">✏️ Edit</a>
     </li>
   <% }) %>
 </ul>
