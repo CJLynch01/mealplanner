@@ -1,6 +1,6 @@
 import express from "express";
 import FoodStorage from "../models/foodStorage.js";
-import { fetchNutritionFromUSDA, calculateTotals } from "../services/usdaService.js";
+import { fetchNutritionByBarcode, fetchNutritionByName, calculateTotals } from "../services/nutritionService.js";
 
 const router = express.Router();
 
@@ -33,22 +33,25 @@ router.get("/", async (req, res) => {
 // POST: Add new item with nutrition info
 router.post("/", async (req, res) => {
   try {
-    const { name, quantity, unit, servingsPerUnit, expires, category, caloriesPerServing } = req.body;
+    const { name, quantity, unit, servingsPerUnit, expires, category } = req.body;
 
-    const nutrition = await fetchNutritionFromUSDA(name);
+    // First try barcode (if user enters a number), then fallback to name
+    const nutrition = /^\d{8,}$/.test(name.trim())
+      ? await fetchNutritionByBarcode(name.trim())
+      : await fetchNutritionByName(name.trim());
 
     if (!nutrition) {
-      return res.status(400).send("Nutrition info not found. Try a different name.");
+      return res.status(400).send("Nutrition info not found. Try a different name or barcode.");
     }
 
     await FoodStorage.create({
-      name,
+      name: nutrition.name, // Use resolved name if available
       quantity,
       unit,
       servingsPerUnit,
       expires,
       category,
-      caloriesPerServing: Number(caloriesPerServing) || 0
+      ...nutrition, // caloriesPerServing, proteinPerServing, etc.
     });
 
     res.redirect("/storage");
