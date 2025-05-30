@@ -2,12 +2,13 @@
 <a href="/">← Back to Weekly Plan</a>
 
 <form method="POST" action="/storage">
-  <input name="name" placeholder="Item Name" required>
-  <input name="quantity" type="number" step="0.01" placeholder="Qty" required>
-  <input name="unit" placeholder="Unit (e.g., lbs)">
-  <input name="expires" type="date">
-  <input name="category" placeholder="Category">
-  <button type="submit">Add Item</button>
+  <input name="name" placeholder="Food name" required />
+  <input name="quantity" placeholder="How many units?" type="number" required />
+  <input name="unit" placeholder="e.g. bag, box" />
+  <input name="servingsPerUnit" placeholder="Servings per unit" type="number" required />
+  <input name="expires" type="date" />
+  <input name="category" placeholder="Pantry, freezer, etc." />
+  <button type="submit">Add</button>
 </form>
 
 <h2>Current Inventory</h2>

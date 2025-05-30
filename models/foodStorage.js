@@ -1,11 +1,19 @@
 import mongoose from "mongoose";
 
 const foodStorageSchema = new mongoose.Schema({
-  name: String,
-  quantity: Number,
-  unit: String,
+  name: { type: String, required: true },
+  quantity: { type: Number, required: true }, // Number of units (bags, cans, etc.)
+  unit: { type: String, default: "bag" },
+  servingsPerUnit: Number, // How many servings in each unit
+  caloriesPerServing: Number,
+  proteinPerServing: Number,
+  fatPerServing: Number,
+  carbsPerServing: Number,
+  ironPerServing: Number, // mg
+  vitaminCPerServing: Number, // mg
+  vitaminAperServing: Number, // IU or mcg
   expires: Date,
-  category: String,
+  category: String
 });
 
 export default mongoose.model("FoodStorage", foodStorageSchema);

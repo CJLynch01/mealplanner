@@ -1,5 +1,6 @@
 import express from "express";
 import FoodStorage from "../models/foodStorage.js";
+import { fetchNutritionByName } from "../services/nutritionService.js";
 
 const router = express.Router();
 
@@ -24,6 +25,28 @@ router.post("/", async (req, res) => {
     console.error("Error saving storage item:", err.message);
     res.status(500).send("Error saving storage item");
   }
+});
+
+router.post("/", async (req, res) => {
+  const { name, quantity, unit, servingsPerUnit, expires, category } = req.body;
+
+  const nutrition = await fetchNutritionByName(name);
+
+  if (!nutrition) {
+    return res.status(400).send("Nutrition info not found. Try a different name.");
+  }
+
+  await FoodStorage.create({
+    name,
+    quantity,
+    unit,
+    servingsPerUnit,
+    expires,
+    category,
+    ...nutrition
+  });
+
+  res.redirect("/storage");
 });
 
 export default router;
