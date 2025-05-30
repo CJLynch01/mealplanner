@@ -1,15 +1,19 @@
 import fetch from "node-fetch";
 
 /**
- * Fetch nutrition info for a food item using OpenFoodFacts.
- * @param {string} name - The food name (e.g., "Krusteaz pancake mix")
+ * Fetch nutrition info for a food item using OpenFoodFacts by barcode.
+ * @param {string} upc - The product's barcode (UPC)
  */
 export async function fetchNutritionByBarcode(upc) {
   const url = `https://world.openfoodfacts.org/api/v0/product/${upc}.json`;
   try {
     const res = await fetch(url);
     const data = await res.json();
-    if (!data.product || !data.product.nutriments) return null;
+
+    if (!data.product || !data.product.nutriments) {
+      console.warn(`⚠️ No product found for barcode: ${upc}`);
+      return null;
+    }
 
     const p = data.product.nutriments;
     return {
@@ -28,15 +32,30 @@ export async function fetchNutritionByBarcode(upc) {
   }
 }
 
+/**
+ * Fetch nutrition info for a food item using OpenFoodFacts by name.
+ * @param {string} name - The food name (e.g., "Krusteaz pancake mix")
+ */
 export async function fetchNutritionByName(name) {
   const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&search_simple=1&action=process&json=1`;
 
   try {
     const res = await fetch(url);
-    const data = await res.json();
+    const text = await res.text(); // Get raw text for fallback parsing
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error("❌ Not JSON (maybe HTML or error page). Response was:\n", text.slice(0, 200));
+      return null;
+    }
 
     const product = data.products?.[0];
-    if (!product || !product.nutriments) return null;
+    if (!product || !product.nutriments) {
+      console.warn(`⚠️ No product found for name: "${name}"`);
+      return null;
+    }
 
     const p = product.nutriments;
     return {
