@@ -1,43 +1,43 @@
-<h1>Assign a Meal to a Day</h1>
+<h1>Assign a Meal</h1>
 
 <form method="GET" action="/assign">
-  <label for="mealId">Choose a Meal:</label>
-  <select name="mealId" onchange="this.form.submit()">
-    <option value="">-- Select Meal --</option>
+  <label for="mealId">Choose a meal:</label>
+  <select name="mealId" id="mealId">
     <% meals.forEach(meal => { %>
-      <option value="<%= meal._id %>" <%= selectedMeal && selectedMeal._id.toString() === meal._id.toString() ? 'selected' : '' %>>
+      <option value="<%= meal._id %>" <%= selectedMeal && selectedMeal._id.toString() === meal._id.toString() ? "selected" : "" %>>
         <%= meal.name %>
       </option>
     <% }) %>
   </select>
+  <button type="submit">Load Ingredients</button>
 </form>
 
 <% if (selectedMeal) { %>
   <form method="POST" action="/assign">
     <input type="hidden" name="mealId" value="<%= selectedMeal._id %>">
 
-    <label for="date">Choose Date:</label>
+    <label for="date">Date:</label>
     <input type="date" name="date" required>
 
-    <h2>Choose Products to Add to Shopping List:</h2>
+    <label for="type">Meal Type:</label>
+    <select name="type" required>
+      <option value="breakfast">Breakfast</option>
+      <option value="lunch">Lunch</option>
+      <option value="dinner">Dinner</option>
+      <option value="snack">Snack</option>
+    </select>
 
-    <% ingredientProducts.forEach(entry => { %>
-      <h3><%= entry.ingredient %></h3>
-      <div class="product-grid">
-        <% entry.products.forEach(p => { %>
-          <label class="product-card">
-            <input type="checkbox" name="selectedProducts" value="<%= `${entry.ingredient}:::${p.brand} ${p.description}:::${p.price}` %>">
-            <% if (p.image) { %>
-              <img src="<%= p.image %>" alt="Image" style="height: 80px;"><br>
-            <% } %>
-            <strong><%= p.brand %></strong><br>
-            <%= p.description %><br>
-            $<%= p.price.toFixed(2) %>
-          </label>
-        <% }) %>
-      </div>
+    <h3>Choose ingredients to add to your shopping list:</h3>
+    <% ingredientProducts.forEach(group => { %>
+      <h4><%= group.ingredient %></h4>
+      <% group.products.forEach(product => { %>
+        <label>
+          <input type="checkbox" name="selectedProducts" value="<%= group.ingredient %>:::<%= product.description %>:::<%= product.price %>">
+          <%= product.description %> - $<%= product.price.toFixed(2) %>
+        </label><br>
+      <% }) %>
     <% }) %>
 
-    <button type="submit">Assign Meal</button>
+    <button type="submit">Assign Meal and Save Shopping List</button>
   </form>
 <% } %>

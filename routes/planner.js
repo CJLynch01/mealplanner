@@ -75,13 +75,13 @@ router.get("/assign", async (req, res) => {
 
 // Handle assignment form submit
 router.post("/assign", async (req, res) => {
-  const { date, mealId, selectedProducts } = req.body;
+  const { date, mealId, selectedProducts, type } = req.body;
   const meal = await Meal.findById(mealId);
   if (!meal) return res.status(404).send("Meal not found");
 
   await Assignment.findOneAndUpdate(
-    { date: new Date(date) },
-    { mealName: meal.name },
+    { date: new Date(date), type },
+    { mealName: meal.name, type },
     { upsert: true }
   );
 
