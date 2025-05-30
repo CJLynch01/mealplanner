@@ -4,36 +4,33 @@ import { fetchNutritionByName, calculateTotals } from "../services/nutritionServ
 
 const router = express.Router();
 
-// Show form and list of stored items
+// GET: List all items grouped by category
 router.get("/", async (req, res) => {
   try {
     const items = await FoodStorage.find().sort({ name: 1 });
 
-    const storage = items.map((item) => {
+    // Group items by category and calculate totals
+    const grouped = {};
+    items.forEach((item) => {
       const obj = item.toObject();
 
-      // Only calculate if data is available
-      if (
-        obj.quantity &&
-        obj.servingsPerUnit &&
-        obj.caloriesPerServing !== undefined
-      ) {
-        obj.stats = calculateTotals(obj, 5); // 5 = family size
-      } else {
-        obj.stats = null; // Avoid crash in EJS
-      }
+      obj.stats =
+        obj.quantity && obj.servingsPerUnit && obj.caloriesPerServing !== undefined
+          ? calculateTotals(obj, 5) // 5 = family size
+          : null;
 
-      return obj;
+      if (!grouped[obj.category]) grouped[obj.category] = [];
+      grouped[obj.category].push(obj);
     });
 
-    res.render("storage", { storage });
+    res.render("storage", { grouped });
   } catch (err) {
     console.error("Error loading food storage:", err.message);
     res.status(500).send("Error loading food storage");
   }
 });
 
-// Handle new item submission with nutrition fetch
+// POST: Add new item with nutrition info
 router.post("/", async (req, res) => {
   try {
     const { name, quantity, unit, servingsPerUnit, expires, category } = req.body;
@@ -61,22 +58,48 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Show edit form
+// GET: Edit form
 router.get("/edit/:id", async (req, res) => {
-  const item = await FoodStorage.findById(req.params.id);
-  res.render("edit-storage", { item });
+  try {
+    const item = await FoodStorage.findById(req.params.id);
+    if (!item) return res.status(404).send("Item not found");
+    res.render("edit-storage", { item });
+  } catch (err) {
+    console.error("Error loading item for edit:", err.message);
+    res.status(500).send("Error loading item");
+  }
 });
 
-// Handle update
+// POST: Save edited item
 router.post("/edit/:id", async (req, res) => {
-  await FoodStorage.findByIdAndUpdate(req.params.id, req.body);
-  res.redirect("/storage");
+  try {
+    const { name, quantity, unit, servingsPerUnit, expires, category } = req.body;
+
+    await FoodStorage.findByIdAndUpdate(req.params.id, {
+      name,
+      quantity,
+      unit,
+      servingsPerUnit,
+      expires,
+      category
+    });
+
+    res.redirect("/storage");
+  } catch (err) {
+    console.error("Error updating item:", err.message);
+    res.status(500).send("Error updating item");
+  }
 });
 
-// Handle delete
+// POST: Delete item
 router.post("/delete/:id", async (req, res) => {
-  await FoodStorage.findByIdAndDelete(req.params.id);
-  res.redirect("/storage");
+  try {
+    await FoodStorage.findByIdAndDelete(req.params.id);
+    res.redirect("/storage");
+  } catch (err) {
+    console.error("Error deleting item:", err.message);
+    res.status(500).send("Error deleting item");
+  }
 });
 
 export default router;

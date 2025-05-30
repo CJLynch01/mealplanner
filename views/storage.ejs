@@ -7,31 +7,47 @@
   <input name="unit" placeholder="e.g. bag, box" />
   <input name="servingsPerUnit" placeholder="Servings per unit" type="number" required />
   <input name="expires" type="date" />
-  <input name="category" placeholder="Pantry, freezer, etc." />
+  <select name="category" required>
+    <option value="">-- Select Category --</option>
+    <option value="Breakfast">Breakfast</option>
+    <option value="Lunch">Lunch</option>
+    <option value="Dinner">Dinner</option>
+    <option value="Snack">Snack</option>
+    <option value="Pantry">Pantry</option>
+    <option value="Freezer">Freezer</option>
+  </select>
   <button type="submit">Add</button>
 </form>
 
 <h2>Current Inventory</h2>
-<ul>
-  <% storage.forEach(item => { %>
-    <li>
-      <strong><%= item.name %></strong>:
-      <%= item.quantity %> <%= item.unit %> 
-      (Expires: <%= new Date(item.expires).toDateString() %>)<br>
 
-      <% if (item.stats) { %>
-        🍽 Total Calories: <%= item.stats.totalCalories.toLocaleString() %> kcal  
-        | Protein: <%= item.stats.totalProtein %>g  
-        | Covers: <%= item.stats.daysOfSupport %> day(s) for 5 people
-      <% } else { %>
-        <em>Nutrition data incomplete.</em>
-      <% } %>
+<% if (Object.keys(grouped).length === 0) { %>
+  <p>No items in storage yet.</p>
+<% } else { %>
+  <% for (let category in grouped) { %>
+    <h3><%= category %></h3>
+    <ul>
+      <% grouped[category].forEach(item => { %>
+        <li>
+          <strong><%= item.name %></strong>:
+          <%= item.quantity %> <%= item.unit %>
+          (Expires: <%= new Date(item.expires).toDateString() %>)<br>
+          <em>Category: <%= item.category %></em><br>
 
-      <!-- Edit and Delete Buttons -->
-      <form method="POST" action="/storage/delete/<%= item._id %>" style="display:inline;">
-        <button onclick="return confirm('Delete this item?')">🗑️</button>
-      </form>
-      <a href="/storage/edit/<%= item._id %>">✏️ Edit</a>
-    </li>
-  <% }) %>
-</ul>
+          <% if (item.stats) { %>
+            🍽 Total Calories: <%= item.stats.totalCalories.toLocaleString() %> kcal  
+            | Protein: <%= item.stats.totalProtein %>g  
+            | Covers: <%= item.stats.daysOfSupport %> day(s) for 5 people
+          <% } else { %>
+            <em>Nutrition data incomplete.</em>
+          <% } %>
+
+          <form method="POST" action="/storage/delete/<%= item._id %>" style="display:inline;">
+            <button onclick="return confirm('Delete this item?')">🗑️</button>
+          </form>
+          <a href="/storage/edit/<%= item._id %>">✏️ Edit</a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+<% } %>

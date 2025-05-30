@@ -1,11 +1,18 @@
 <h1>Edit Food Storage Item</h1>
 <form method="POST" action="/storage/edit/<%= item._id %>">
-  <input name="name" value="<%= item.name %>" required />
-  <input name="quantity" type="number" value="<%= item.quantity %>" />
-  <input name="unit" value="<%= item.unit %>" />
-  <input name="servingsPerUnit" type="number" value="<%= item.servingsPerUnit %>" />
-  <input name="expires" type="date" value="<%= item.expires.toISOString().split('T')[0] %>" />
-  <input name="category" value="<%= item.category %>" />
+    <input name="name" value="<%= item.name %>" required />
+    <input name="quantity" type="number" value="<%= item.quantity %>" />
+    <input name="unit" value="<%= item.unit %>" />
+    <input name="servingsPerUnit" type="number" value="<%= item.servingsPerUnit %>" />
+    <input name="expires" type="date" value="<%= item.expires.toISOString().split('T')[0] %>" />
+    <select name="category" required>
+        <option value="Breakfast" <%= item.category === "Breakfast" ? "selected" : "" %>>Breakfast</option>
+        <option value="Lunch" <%= item.category === "Lunch" ? "selected" : "" %>>Lunch</option>
+        <option value="Dinner" <%= item.category === "Dinner" ? "selected" : "" %>>Dinner</option>
+        <option value="Snack" <%= item.category === "Snack" ? "selected" : "" %>>Snack</option>
+        <option value="Pantry" <%= item.category === "Pantry" ? "selected" : "" %>>Pantry</option>
+        <option value="Freezer" <%= item.category === "Freezer" ? "selected" : "" %>>Freezer</option>
+    </select>
   <button type="submit">Save Changes</button>
 </form>
 <a href="/storage">← Back</a>
