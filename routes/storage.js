@@ -1,6 +1,6 @@
 import express from "express";
 import FoodStorage from "../models/foodStorage.js";
-import { fetchNutritionByName, calculateTotals } from "../services/nutritionService.js";
+import { fetchNutritionByName, calculateTotals, fetchNutritionFromUSDA } from "../services/usdaService.js";
 
 const router = express.Router();
 
@@ -35,7 +35,7 @@ router.post("/", async (req, res) => {
   try {
     const { name, quantity, unit, servingsPerUnit, expires, category, caloriesPerServing } = req.body;
 
-    const nutrition = await fetchNutritionByName(name);
+    const nutrition = await fetchNutritionFromUSDA(name);
 
     if (!nutrition) {
       return res.status(400).send("Nutrition info not found. Try a different name.");
