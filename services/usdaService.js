@@ -41,3 +41,18 @@ export async function fetchNutritionFromUSDA(name) {
     return null;
   }
 }
+
+export function calculateTotals(item, familySize = 5) {
+  const totalServings = item.quantity * item.servingsPerUnit;
+
+  const totalCalories = totalServings * (item.caloriesPerServing || 0);
+  const totalProtein = totalServings * (item.proteinPerServing || 0);
+  const totalIron = totalServings * (item.ironPerServing || 0);
+
+  return {
+    totalCalories,
+    totalProtein,
+    totalIron,
+    daysOfSupport: Math.floor(totalCalories / (familySize * 2000))
+  };
+}
