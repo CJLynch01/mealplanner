@@ -2,6 +2,10 @@
 <a href="/">← Back to Weekly Plan</a>
 
 <form method="POST" action="/storage">
+  <input id="barcode" placeholder="Scan or type barcode" />
+  <button type="button" onclick="fetchFromBarcode()">🔍 Lookup</button>
+  <br />
+
   <input name="name" placeholder="Food name" required />
   <input name="quantity" placeholder="How many units?" type="number" required />
   <input name="unit" placeholder="e.g. bag, box" />
@@ -18,6 +22,42 @@
   </select>
   <button type="submit">Add</button>
 </form>
+
+<script>
+  async function fetchFromBarcode() {
+    const barcode = document.getElementById("barcode").value.trim();
+    const result = document.getElementById("lookupResult");
+    if (!barcode) return alert("Please enter a barcode");
+
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+      const data = await res.json();
+
+      if (data.status !== 1) {
+        result.textContent = "❌ Product not found.";
+        return;
+      }
+
+      const product = data.product;
+      const p = product.nutriments || {};
+
+      // Auto-fill form fields
+      document.getElementById("name").value = product.product_name || "Unnamed Product";
+      document.querySelector("input[name='caloriesPerServing']")?.remove();
+      const hiddenInput = document.createElement("input");
+      hiddenInput.type = "hidden";
+      hiddenInput.name = "caloriesPerServing";
+      hiddenInput.value = p["energy-kcal_serving"] || 0;
+      document.getElementById("storageForm").appendChild(hiddenInput);
+
+      result.textContent = "✅ Product info loaded. Complete remaining fields and click Add.";
+    } catch (err) {
+      console.error(err);
+      result.textContent = "❌ Error fetching product.";
+    }
+  }
+</script>
+
 
 <h2>Current Inventory</h2>
 

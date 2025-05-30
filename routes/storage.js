@@ -33,7 +33,7 @@ router.get("/", async (req, res) => {
 // POST: Add new item with nutrition info
 router.post("/", async (req, res) => {
   try {
-    const { name, quantity, unit, servingsPerUnit, expires, category } = req.body;
+    const { name, quantity, unit, servingsPerUnit, expires, category, caloriesPerServing } = req.body;
 
     const nutrition = await fetchNutritionByName(name);
 
@@ -48,7 +48,7 @@ router.post("/", async (req, res) => {
       servingsPerUnit,
       expires,
       category,
-      ...nutrition
+      caloriesPerServing: Number(caloriesPerServing) || 0
     });
 
     res.redirect("/storage");

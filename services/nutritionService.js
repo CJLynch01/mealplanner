@@ -4,28 +4,26 @@ import fetch from "node-fetch";
  * Fetch nutrition info for a food item using OpenFoodFacts.
  * @param {string} name - The food name (e.g., "Krusteaz pancake mix")
  */
-export async function fetchNutritionByName(name) {
-  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&search_simple=1&action=process&json=1`;
-
+export async function fetchNutritionByBarcode(upc) {
+  const url = `https://world.openfoodfacts.org/api/v0/product/${upc}.json`;
   try {
     const res = await fetch(url);
     const data = await res.json();
+    if (!data.product || !data.product.nutriments) return null;
 
-    const product = data.products?.[0]; // Take first matching result
-    if (!product || !product.nutriments) return null;
-
+    const p = data.product.nutriments;
     return {
-      name: product.product_name || name,
-      caloriesPerServing: product.nutriments["energy-kcal_serving"] || 0,
-      proteinPerServing: product.nutriments["proteins_serving"] || 0,
-      fatPerServing: product.nutriments["fat_serving"] || 0,
-      carbsPerServing: product.nutriments["carbohydrates_serving"] || 0,
-      ironPerServing: product.nutriments["iron_serving"] || 0,
-      vitaminCPerServing: product.nutriments["vitamin-c_serving"] || 0,
-      vitaminAPerServing: product.nutriments["vitamin-a_serving"] || 0
+      name: data.product.product_name || upc,
+      caloriesPerServing: p["energy-kcal_serving"] || 0,
+      proteinPerServing: p["proteins_serving"] || 0,
+      fatPerServing: p["fat_serving"] || 0,
+      carbsPerServing: p["carbohydrates_serving"] || 0,
+      ironPerServing: p["iron_serving"] || 0,
+      vitaminCPerServing: p["vitamin-c_serving"] || 0,
+      vitaminAPerServing: p["vitamin-a_serving"] || 0
     };
   } catch (err) {
-    console.error("❌ Error fetching nutrition info:", err.message);
+    console.error("❌ Error fetching by barcode:", err.message);
     return null;
   }
 }

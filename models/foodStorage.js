@@ -11,7 +11,7 @@ const foodStorageSchema = new mongoose.Schema({
   carbsPerServing: Number,
   ironPerServing: Number, // mg
   vitaminCPerServing: Number, // mg
-  vitaminAperServing: Number, // IU or mcg
+  vitaminAPerServing: Number, // IU or mcg
   expires: Date,
   category: String
 });
