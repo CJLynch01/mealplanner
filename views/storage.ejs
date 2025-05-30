@@ -1,15 +1,17 @@
 <h1>Food Storage Inventory</h1>
 <a href="/">← Back to Weekly Plan</a>
 
-<form method="POST" action="/storage">
+<form method="POST" action="/storage" id="storageForm">
+  <!-- Barcode Lookup -->
   <input id="barcode" placeholder="Scan or type barcode" />
   <button type="button" onclick="fetchFromBarcode()">🔍 Lookup</button>
-  <br />
+  <br><br>
 
-  <input name="name" placeholder="Food name" required />
-  <input name="quantity" placeholder="How many units?" type="number" required />
-  <input name="unit" placeholder="e.g. bag, box" />
-  <input name="servingsPerUnit" placeholder="Servings per unit" type="number" required />
+  <!-- Main Form -->
+  <input name="name" id="name" placeholder="Food name" required />
+  <input name="quantity" placeholder="How many units?" type="number" value="1" required />
+  <input name="unit" placeholder="e.g. bag, box" value="bag" />
+  <input name="servingsPerUnit" placeholder="Servings per unit" type="number" value="1" required />
   <input name="expires" type="date" />
   <select name="category" required>
     <option value="">-- Select Category --</option>
@@ -23,41 +25,10 @@
   <button type="submit">Add</button>
 </form>
 
-<script>
-  async function fetchFromBarcode() {
-    const barcode = document.getElementById("barcode").value.trim();
-    const result = document.getElementById("lookupResult");
-    if (!barcode) return alert("Please enter a barcode");
+<!-- Lookup result message -->
+<p id="lookupResult" style="color: green;"></p>
 
-    try {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-      const data = await res.json();
-
-      if (data.status !== 1) {
-        result.textContent = "❌ Product not found.";
-        return;
-      }
-
-      const product = data.product;
-      const p = product.nutriments || {};
-
-      // Auto-fill form fields
-      document.getElementById("name").value = product.product_name || "Unnamed Product";
-      document.querySelector("input[name='caloriesPerServing']")?.remove();
-      const hiddenInput = document.createElement("input");
-      hiddenInput.type = "hidden";
-      hiddenInput.name = "caloriesPerServing";
-      hiddenInput.value = p["energy-kcal_serving"] || 0;
-      document.getElementById("storageForm").appendChild(hiddenInput);
-
-      result.textContent = "✅ Product info loaded. Complete remaining fields and click Add.";
-    } catch (err) {
-      console.error(err);
-      result.textContent = "❌ Error fetching product.";
-    }
-  }
-</script>
-
+<hr>
 
 <h2>Current Inventory</h2>
 
@@ -70,8 +41,8 @@
       <% grouped[category].forEach(item => { %>
         <li>
           <strong><%= item.name %></strong>:
-          <%= item.quantity %> <%= item.unit %>
-          (Expires: <%= new Date(item.expires).toDateString() %>)<br>
+          <%= item.quantity %> <%= item.unit %><%= item.quantity > 1 ? 's' : '' %>
+          (Expires: <%= item.expires ? new Date(item.expires).toDateString() : "N/A" %>)<br>
           <em>Category: <%= item.category %></em><br>
 
           <% if (item.stats) { %>
@@ -91,3 +62,48 @@
     </ul>
   <% } %>
 <% } %>
+
+<!-- Barcode Lookup Script -->
+<script>
+  async function fetchFromBarcode() {
+    const barcode = document.getElementById("barcode").value.trim();
+    const result = document.getElementById("lookupResult");
+    const nameInput = document.getElementById("name");
+
+    if (!barcode) {
+      alert("Please enter a barcode");
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+      const data = await res.json();
+
+      if (data.status !== 1 || !data.product || !data.product.nutriments) {
+        result.textContent = "❌ Product not found.";
+        return;
+      }
+
+      const product = data.product;
+      const p = product.nutriments || {};
+
+      // Fill in name
+      nameInput.value = product.product_name || "Unnamed Product";
+
+      // Remove previous hidden input if exists
+      document.querySelector("input[name='caloriesPerServing']")?.remove();
+
+      // Add hidden calories field
+      const hiddenCalories = document.createElement("input");
+      hiddenCalories.type = "hidden";
+      hiddenCalories.name = "caloriesPerServing";
+      hiddenCalories.value = p["energy-kcal_serving"] || 0;
+      document.getElementById("storageForm").appendChild(hiddenCalories);
+
+      result.textContent = "✅ Product info loaded. Fill in quantity and other fields.";
+    } catch (err) {
+      console.error(err);
+      result.textContent = "❌ Error fetching product.";
+    }
+  }
+</script>
