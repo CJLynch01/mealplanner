@@ -15,11 +15,11 @@
 <ul>
   <% storage.forEach(item => { %>
     <li>
-      <strong><%= item.name %></strong>: 
-      <%= item.quantity %> <%= item.unit %>
-      <% if (item.expires) { %>
-        (Expires: <%= new Date(item.expires).toDateString() %>)
-      <% } %>
+      <strong><%= item.name %></strong>:
+      <%= item.quantity %> <%= item.unit %> (Expires: <%= new Date(item.expires).toDateString() %>)<br>
+      🍽 Total Calories: <%= item.stats.totalCalories.toLocaleString() %> kcal  
+      | Protein: <%= item.stats.totalProtein %>g  
+      | Covers: <%= item.stats.daysOfSupport %> day(s) for 5 people
     </li>
   <% }) %>
 </ul>
