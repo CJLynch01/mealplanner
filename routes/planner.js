@@ -1,9 +1,10 @@
 import express from "express";
 import dayjs from "dayjs";
-import Meal from "../models/Meal.js";
-import Plan from "../models/Plan.js";
+import Meal from "../models/meal.js";
+import Plan from "../models/plan.js";
 import Assignment from "../models/assignment.js";
 import { searchProduct, getLocationId } from "../services/krogerService.js";
+import ShoppingList from "../models/shoppingList.js";
 
 const router = express.Router();
 
@@ -34,12 +35,13 @@ router.get("/", async (req, res) => {
 // ASSIGN PAGE: Form to assign a meal to a date
 router.get("/assign", async (req, res) => {
   const meals = await Meal.find({});
-  res.render("assign", { meals });
+  const selectedMeal = req.query.mealId ? await Meal.findById(req.query.mealId) : null;
+  res.render("assign", { meals, selectedMeal });
 });
 
 // SAVE ASSIGNMENT
 router.post("/assign", async (req, res) => {
-  const { date, mealId } = req.body;
+  const { date, mealId, selectedIngredients } = req.body;
   const meal = await Meal.findById(mealId);
   if (!meal) return res.status(404).send("Meal not found");
 
@@ -47,6 +49,17 @@ router.post("/assign", async (req, res) => {
     { date: new Date(date) },
     { mealName: meal.name },
     { upsert: true }
+  );
+
+  const ingredients = Array.isArray(selectedIngredients)
+    ? selectedIngredients
+    : [selectedIngredients];
+
+  await ShoppingList.insertMany(
+    ingredients.map(item => ({
+      date: new Date(date),
+      ingredient: item
+    }))
   );
 
   res.redirect("/");

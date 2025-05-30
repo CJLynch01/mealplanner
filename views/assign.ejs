@@ -12,3 +12,36 @@
 
   <button type="submit">Assign Meal</button>
 </form>
+
+<h1>Assign a Meal to a Day</h1>
+
+<form method="GET" action="/assign">
+  <label for="mealId">Choose a Meal:</label>
+  <select name="mealId" onchange="this.form.submit()">
+    <option value="">-- Select Meal --</option>
+    <% meals.forEach(meal => { %>
+      <option value="<%= meal._id %>" <%= selectedMeal && selectedMeal._id.toString() === meal._id.toString() ? 'selected' : '' %>>
+        <%= meal.name %>
+      </option>
+    <% }) %>
+  </select>
+</form>
+
+<% if (selectedMeal) { %>
+  <form method="POST" action="/assign">
+    <input type="hidden" name="mealId" value="<%= selectedMeal._id %>">
+
+    <label for="date">Choose Date:</label>
+    <input type="date" name="date" required>
+
+    <h2>Choose Ingredients to Add to Shopping List:</h2>
+    <% for (let i = 0; i < selectedMeal.ingredients.length; i++) { %>
+      <label>
+        <input type="checkbox" name="selectedIngredients" value="<%= selectedMeal.ingredients[i] %>" checked>
+        <%= selectedMeal.ingredients[i] %>
+      </label><br>
+    <% } %>
+
+    <button type="submit">Assign Meal</button>
+  </form>
+<% } %>
