@@ -89,4 +89,10 @@ router.post("/assign", async (req, res) => {
   res.redirect("/");
 });
 
+// View the full shopping list
+router.get("/shopping-list", async (req, res) => {
+  const list = await ShoppingList.find({}).sort({ date: 1 });
+  res.render("shopping-list", { list });
+});
+
 export default router;
