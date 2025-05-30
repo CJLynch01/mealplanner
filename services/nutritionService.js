@@ -1,11 +1,12 @@
 import fetch from "node-fetch";
 
 /**
- * Fetch nutrition info for a food item using OpenFoodFacts by barcode.
+ * Fetch nutrition info using OpenFoodFacts by barcode.
  * @param {string} upc - The product's barcode (UPC)
  */
 export async function fetchNutritionByBarcode(upc) {
   const url = `https://world.openfoodfacts.org/api/v0/product/${upc}.json`;
+
   try {
     const res = await fetch(url);
     const data = await res.json();
@@ -18,13 +19,13 @@ export async function fetchNutritionByBarcode(upc) {
     const p = data.product.nutriments;
     return {
       name: data.product.product_name || upc,
-      caloriesPerServing: p["energy-kcal_serving"] || 0,
-      proteinPerServing: p["proteins_serving"] || 0,
-      fatPerServing: p["fat_serving"] || 0,
-      carbsPerServing: p["carbohydrates_serving"] || 0,
-      ironPerServing: p["iron_serving"] || 0,
-      vitaminCPerServing: p["vitamin-c_serving"] || 0,
-      vitaminAPerServing: p["vitamin-a_serving"] || 0
+      caloriesPerServing: p["energy-kcal_serving"] ?? 0,
+      proteinPerServing: p["proteins_serving"] ?? 0,
+      fatPerServing: p["fat_serving"] ?? 0,
+      carbsPerServing: p["carbohydrates_serving"] ?? 0,
+      ironPerServing: p["iron_serving"] ?? 0,
+      vitaminCPerServing: p["vitamin-c_serving"] ?? 0,
+      vitaminAPerServing: p["vitamin-a_serving"] ?? 0
     };
   } catch (err) {
     console.error("❌ Error fetching by barcode:", err.message);
@@ -33,13 +34,13 @@ export async function fetchNutritionByBarcode(upc) {
 }
 
 /**
- * Fetch nutrition info for a food item using OpenFoodFacts by name.
- * @param {string} name - The food name (e.g., "Krusteaz pancake mix")
+ * Fetch nutrition info using OpenFoodFacts by name or barcode.
+ * @param {string} input - Either a food name or barcode
  */
 export async function fetchNutritionByName(input) {
   let url;
 
-  // If input is all digits and at least 8 chars, assume it's a barcode
+  // If input is all digits and at least 8 characters, assume barcode
   if (/^\d{8,}$/.test(input.trim())) {
     url = `https://world.openfoodfacts.org/api/v0/product/${input.trim()}.json`;
   } else {
@@ -53,32 +54,31 @@ export async function fetchNutritionByName(input) {
     let product = null;
 
     if (data.product) {
-      // Barcode-based result
-      product = data.product;
+      product = data.product; // Barcode search
     } else if (data.products?.[0]) {
-      // Name-based search result
-      product = data.products[0];
+      product = data.products[0]; // Name search
     } else {
+      console.warn(`⚠️ No product found for input: ${input}`);
       return null;
     }
 
+    const p = product.nutriments || {};
+
     return {
       name: product.product_name || input,
-      caloriesPerServing: product.nutriments?.['energy-kcal_serving'] || 0,
-      proteinPerServing: product.nutriments?.proteins_serving || 0,
-      fatPerServing: product.nutriments?.fat_serving || 0,
-      carbsPerServing: product.nutriments?.carbohydrates_serving || 0,
-      ironPerServing: product.nutriments?.iron_serving || 0,
-      vitaminCPerServing: product.nutriments?.['vitamin-c_serving'] || 0,
-      vitaminAperServing: product.nutriments?.['vitamin-a_serving'] || 0
+      caloriesPerServing: p["energy-kcal_serving"] ?? 0,
+      proteinPerServing: p["proteins_serving"] ?? 0,
+      fatPerServing: p["fat_serving"] ?? 0,
+      carbsPerServing: p["carbohydrates_serving"] ?? 0,
+      ironPerServing: p["iron_serving"] ?? 0,
+      vitaminCPerServing: p["vitamin-c_serving"] ?? 0,
+      vitaminAPerServing: p["vitamin-a_serving"] ?? 0
     };
   } catch (err) {
-    console.error("Error fetching nutrition info:", err.message);
+    console.error("❌ Error fetching nutrition info:", err.message);
     return null;
   }
 }
-
-
 
 /**
  * Calculate total nutritional values and days of caloric support.
@@ -88,9 +88,9 @@ export async function fetchNutritionByName(input) {
 export function calculateTotals(item, familySize = 5) {
   const totalServings = item.quantity * item.servingsPerUnit;
 
-  const totalCalories = totalServings * (item.caloriesPerServing || 0);
-  const totalProtein = totalServings * (item.proteinPerServing || 0);
-  const totalIron = totalServings * (item.ironPerServing || 0);
+  const totalCalories = totalServings * (item.caloriesPerServing ?? 0);
+  const totalProtein = totalServings * (item.proteinPerServing ?? 0);
+  const totalIron = totalServings * (item.ironPerServing ?? 0);
 
   return {
     totalCalories,
