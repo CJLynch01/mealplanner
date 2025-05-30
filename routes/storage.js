@@ -1,6 +1,6 @@
 import express from "express";
 import FoodStorage from "../models/foodStorage.js";
-import { fetchNutritionByName, calculateTotals, fetchNutritionFromUSDA } from "../services/usdaService.js";
+import { fetchNutritionFromUSDA, calculateTotals } from "../services/usdaService.js";
 
 const router = express.Router();
 
