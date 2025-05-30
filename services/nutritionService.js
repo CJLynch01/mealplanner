@@ -36,39 +36,48 @@ export async function fetchNutritionByBarcode(upc) {
  * Fetch nutrition info for a food item using OpenFoodFacts by name.
  * @param {string} name - The food name (e.g., "Krusteaz pancake mix")
  */
-export async function fetchNutritionByName(name) {
-  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&search_simple=1&action=process&json=1`;
+export async function fetchNutritionByName(input) {
+  let url;
+
+  // If input is all digits and at least 8 chars, assume it's a barcode
+  if (/^\d{8,}$/.test(input.trim())) {
+    url = `https://world.openfoodfacts.org/api/v0/product/${input.trim()}.json`;
+  } else {
+    url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(input)}&search_simple=1&action=process&json=1`;
+  }
 
   try {
     const res = await fetch(url);
+    const data = await res.json();
 
-    // Avoid parsing HTML errors
-    const contentType = res.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      console.error("❌ Not JSON (maybe HTML or error page). Skipping.");
+    let product = null;
+
+    if (data.product) {
+      // Barcode-based result
+      product = data.product;
+    } else if (data.products?.[0]) {
+      // Name-based search result
+      product = data.products[0];
+    } else {
       return null;
     }
 
-    const data = await res.json();
-
-    const product = data.products?.[0];
-    if (!product) return null;
-
     return {
-      name: product.product_name,
-      caloriesPerServing: product.nutriments['energy-kcal_serving'] || 0,
-      proteinPerServing: product.nutriments.proteins_serving || 0,
-      fatPerServing: product.nutriments.fat_serving || 0,
-      carbsPerServing: product.nutriments.carbohydrates_serving || 0,
-      ironPerServing: product.nutriments['iron_serving'] || 0,
-      vitaminCPerServing: product.nutriments['vitamin-c_serving'] || 0,
-      vitaminAperServing: product.nutriments['vitamin-a_serving'] || 0
+      name: product.product_name || input,
+      caloriesPerServing: product.nutriments?.['energy-kcal_serving'] || 0,
+      proteinPerServing: product.nutriments?.proteins_serving || 0,
+      fatPerServing: product.nutriments?.fat_serving || 0,
+      carbsPerServing: product.nutriments?.carbohydrates_serving || 0,
+      ironPerServing: product.nutriments?.iron_serving || 0,
+      vitaminCPerServing: product.nutriments?.['vitamin-c_serving'] || 0,
+      vitaminAperServing: product.nutriments?.['vitamin-a_serving'] || 0
     };
   } catch (err) {
     console.error("Error fetching nutrition info:", err.message);
     return null;
   }
 }
+
 
 
 /**
