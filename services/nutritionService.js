@@ -41,38 +41,35 @@ export async function fetchNutritionByName(name) {
 
   try {
     const res = await fetch(url);
-    const text = await res.text(); // Get raw text for fallback parsing
 
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (err) {
-      console.error("❌ Not JSON (maybe HTML or error page). Response was:\n", text.slice(0, 200));
+    // Avoid parsing HTML errors
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.error("❌ Not JSON (maybe HTML or error page). Skipping.");
       return null;
     }
+
+    const data = await res.json();
 
     const product = data.products?.[0];
-    if (!product || !product.nutriments) {
-      console.warn(`⚠️ No product found for name: "${name}"`);
-      return null;
-    }
+    if (!product) return null;
 
-    const p = product.nutriments;
     return {
-      name: product.product_name || name,
-      caloriesPerServing: p["energy-kcal_serving"] || 0,
-      proteinPerServing: p["proteins_serving"] || 0,
-      fatPerServing: p["fat_serving"] || 0,
-      carbsPerServing: p["carbohydrates_serving"] || 0,
-      ironPerServing: p["iron_serving"] || 0,
-      vitaminCPerServing: p["vitamin-c_serving"] || 0,
-      vitaminAPerServing: p["vitamin-a_serving"] || 0
+      name: product.product_name,
+      caloriesPerServing: product.nutriments['energy-kcal_serving'] || 0,
+      proteinPerServing: product.nutriments.proteins_serving || 0,
+      fatPerServing: product.nutriments.fat_serving || 0,
+      carbsPerServing: product.nutriments.carbohydrates_serving || 0,
+      ironPerServing: product.nutriments['iron_serving'] || 0,
+      vitaminCPerServing: product.nutriments['vitamin-c_serving'] || 0,
+      vitaminAperServing: product.nutriments['vitamin-a_serving'] || 0
     };
   } catch (err) {
-    console.error("❌ Error fetching by name:", err.message);
+    console.error("Error fetching nutrition info:", err.message);
     return null;
   }
 }
+
 
 /**
  * Calculate total nutritional values and days of caloric support.
