@@ -1,13 +1,31 @@
 import express from "express";
 import FoodStorage from "../models/foodStorage.js";
-import { fetchNutritionByName } from "../services/nutritionService.js";
+import { fetchNutritionByName, calculateTotals } from "../services/nutritionService.js";
 
 const router = express.Router();
 
 // Show form and list of stored items
 router.get("/", async (req, res) => {
   try {
-    const storage = await FoodStorage.find().sort({ name: 1 });
+    const items = await FoodStorage.find().sort({ name: 1 });
+
+    const storage = items.map((item) => {
+      const obj = item.toObject();
+
+      // Only calculate if data is available
+      if (
+        obj.quantity &&
+        obj.servingsPerUnit &&
+        obj.caloriesPerServing !== undefined
+      ) {
+        obj.stats = calculateTotals(obj, 5); // 5 = family size
+      } else {
+        obj.stats = null; // Avoid crash in EJS
+      }
+
+      return obj;
+    });
+
     res.render("storage", { storage });
   } catch (err) {
     console.error("Error loading food storage:", err.message);
